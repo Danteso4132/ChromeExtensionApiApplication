@@ -25,4 +25,4 @@ jobs:
       - name: kill previous process
         run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "sudo lsof -i:${{ secrets.APP_PORT }} -t | xargs -r sudo kill"
       - name: run jar application
-        run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.PROJECT_FOLDER }}/target && java -jar helloworld-0.0.1-SNAPSHOT.jar"
+        run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.PROJECT_FOLDER }}/target && java -jar ChromeExtensionApiApplication-0.0.1-SNAPSHOT.jar"
