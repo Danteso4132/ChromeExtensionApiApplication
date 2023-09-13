@@ -19,12 +19,7 @@ public class ApiController {
 
 
 
-    @GetMapping("/home")
-    public String getRequest(HttpServletRequest req){
-        logger.debug("User navigated to /home");
-        logger.info(logger.getClass().getName());
-        return "helloWorld";
-    }
+
 
 
     @PostMapping("/api/save")
