@@ -18,7 +18,11 @@ public class ApiController {
     CambridgeParser cambridgeParser;
 
 
-
+    @GetMapping("/hello")
+    @ResponseBody
+    public String hello(){
+        return "hello";
+    }
 
 
 
