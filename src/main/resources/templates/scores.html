@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+
+<table>
+    <thead>
+    <tr>
+        <th> Term </th>
+        <th> Score +</th>
+        <th> Score -</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:if="${scoresMap.empty}">
+        <td colspan="2"> No terms Available </td>
+    </tr>
+
+    <tr th:each="score : ${scoresMap}">
+        <td th:text="${score.key}">keyvalue</td>
+        <td th:text="${score.value.correct}">keyvalue</td>
+        <td th:text="${score.value.errors}">keyvalue</td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>

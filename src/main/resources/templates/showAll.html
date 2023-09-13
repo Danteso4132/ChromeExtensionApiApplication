@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ALl terms</title>
+</head>
+<body>
+
+<table>
+    <thead>
+    <tr>
+        <th> Term </th>
+        <th> Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:if="${terms.empty}">
+        <td colspan="2"> No terms Available </td>
+    </tr>
+
+    <tr th:each="term : ${terms}">
+        <td th:text="${term.getName()}">keyvalue</td>
+        <td th:each="desc : ${term.descriptions}" th:text="${desc.getDescription()}">keyvalue</td>
+
+
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>
