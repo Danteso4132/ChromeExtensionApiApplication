@@ -1,11 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-
+<link rel="stylesheet" href="/styles/styles.css">
+<div th:replace="fragments/header :: header"></div>
 
 <table>
     <thead>
@@ -15,9 +11,13 @@
         <th> Score -</th>
     </tr>
     </thead>
+    <br>
+    <br>
+
+
     <tbody>
     <tr th:if="${scoresMap.empty}">
-        <td colspan="2"> No terms Available </td>
+        <td colspan="3"> No terms available </td>
     </tr>
 
     <tr th:each="score : ${scoresMap}">
@@ -28,5 +28,5 @@
     </tbody>
 </table>
 
-</body>
+<div th:replace="fragments/footer :: footer"></div>
 </html>

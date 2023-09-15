@@ -18,6 +18,12 @@ import java.util.UUID;
 @ToString
 public class Description {
 
+    public Description(){}
+
+    public Description(String description){
+        this.description = description;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "description_id")

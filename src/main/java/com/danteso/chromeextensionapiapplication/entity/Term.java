@@ -1,10 +1,7 @@
 package com.danteso.chromeextensionapiapplication.entity;
 
 import jakarta.persistence.*;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.annotations.Cascade;
 
 import java.util.Objects;
@@ -18,6 +15,21 @@ import java.util.UUID;
 @Setter
 @Getter
 public class Term {
+
+    public Term(){
+    }
+
+    public Term(String name, String description){
+        this.name = name;
+        this.descriptions = Set.of(new Description(description));
+    }
+
+    public Term(String id, String name, Set<Description> descriptions, Score score) {
+        this.id = UUID.fromString(id);
+        this.name = name;
+        this.descriptions = descriptions;
+        this.score = score;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

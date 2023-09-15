@@ -1,0 +1,28 @@
+footer{
+    position:fixed;
+    bottom:0;
+    left:0;
+    width:100%;
+    text-align: center;
+}
+
+header{
+    position:fixed;
+    top:0;
+    width:100%;
+    text-align: center;
+}
+input, td, button, table, tr, form, th{
+    padding: 10px;
+    text-align: center;
+    margin: auto;
+}
+tr{
+    border: 1px black;
+}
+
+/***/
+/*{*/
+/*    text-align: center !important;*/
+/*    margin: auto !important;*/
+/*}*/

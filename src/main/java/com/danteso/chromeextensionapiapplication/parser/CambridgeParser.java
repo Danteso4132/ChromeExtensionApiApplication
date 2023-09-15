@@ -30,9 +30,9 @@ public class CambridgeParser implements Parser{
             }
             System.out.println("Returning " + des);
             if (des.size() == 0){
-                Description d = new Description();
-                d.setDescription("No definition for term!");
-                des.add(d);
+                //Description d = new Description();
+                //d.setDescription("No definition for term!");
+                //des.add(d);
             }
             return des;
 

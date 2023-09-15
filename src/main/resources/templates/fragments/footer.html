@@ -1,0 +1,25 @@
+<footer>
+    <link rel="stylesheet" href="/styles/styles.css">
+    <form method="post" action="/api/saveForTermName">
+        <input th:name="word"/>
+        <button type="submit">Save word</button>
+    </form>
+
+
+    <table>
+        <tr>
+            <td>
+                <button onclick="window.location.href = '/api/showScores';" style="width: 100px;">Scores</button>
+            </td>
+            <td>
+                <button onclick="window.location.href = '/api/random';" style="width: 100px;">Game</button>
+            </td>
+            <td>
+                <button onclick="window.location.href = '/api/showAll';" style="width: 100px;">All terms</button>
+            </td>
+        </tr>
+    </table>
+    <!-- Your footer contents -->
+    <p>© 2023 Danteso wordl. All rights reserved.</p>
+    <!-- Other footer elements -->
+</footer>

@@ -3,15 +3,14 @@ package com.danteso.chromeextensionapiapplication.controller;
 import com.danteso.chromeextensionapiapplication.entity.Description;
 import com.danteso.chromeextensionapiapplication.entity.Score;
 import com.danteso.chromeextensionapiapplication.entity.Term;
+import com.danteso.chromeextensionapiapplication.game.GameEngine;
 import com.danteso.chromeextensionapiapplication.parser.CambridgeParser;
 import com.danteso.chromeextensionapiapplication.repo.TermRepository;
 import com.google.gson.Gson;
-import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.stereotype.Repository;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,6 +31,8 @@ public class ApiController {
     @Autowired
     TermRepository termRepository;
 
+    @Autowired
+    GameEngine gameEngine;
 
 
 
@@ -39,24 +40,42 @@ public class ApiController {
     @PostMapping("/save")
     @ResponseBody
     @CrossOrigin
-    public String postSelection(@RequestBody String request){
-
+    public String saveFromRequest(@RequestBody String request){
         System.out.println(request);
         String wordToDescription = request.replaceAll("[^a-zA-Z0-9]", "");
-        Term fromRepo = termRepository.findByName(wordToDescription);
+        Set<Description> descriptionFromUrl = saveFromGivenTermName(wordToDescription);
+        Gson g = new Gson();
+        return g.toJson(descriptionFromUrl);
+    }
+
+    private Set<Description> saveFromGivenTermName(String termName){
+        Term fromRepo = termRepository.findByName(termName);
         if (fromRepo != null){
-            return fromRepo.toString();
+            return fromRepo.getDescriptions();
         }
-        String url = "https://dictionary.cambridge.org/dictionary/english/"+ wordToDescription;
+        String url = "https://dictionary.cambridge.org/dictionary/english/"+ termName;
         System.out.println(url);
         Set<Description> descriptionFromUrl = cambridgeParser.getDescriptionFromUrl(url);
         Term t = new Term();
-        t.setDescriptions(descriptionFromUrl);
-        t.setName(wordToDescription);
-        t.setScore(new Score());
-        termRepository.save(t);
-        Gson g = new Gson();
-        return g.toJson(descriptionFromUrl);
+        if (descriptionFromUrl.size() > 0){
+            t.setDescriptions(descriptionFromUrl);
+            t.setName(termName);
+            t.setScore(new Score());
+            termRepository.save(t);
+            Gson g = new Gson();
+            return descriptionFromUrl;
+        }
+        else {
+            return Set.of(new Description());
+        }
+
+    }
+
+    @PostMapping("/saveForTermName")
+    @CrossOrigin
+    public String saveFromRequestedName(@ModelAttribute("word") String term){
+        saveFromGivenTermName(term);
+        return "redirect:/api/showAll";
     }
 
     @GetMapping("/showDescription")
@@ -95,5 +114,32 @@ public class ApiController {
         model.addAttribute("scoresMap", scores);
 
         return "scores";
+    }
+
+    @GetMapping("/random")
+    public String getRandomTerm(Model model){
+        Map<Term, List<Description>> randomTerms = gameEngine.getTermWithRandomDescriptions();
+        Term term = randomTerms.keySet().iterator().next();
+        List<Description> descriptions = randomTerms.get(term);
+        model.addAttribute("term", term);
+        model.addAttribute("descriptions", descriptions);
+        return "game";
+    }
+
+    @PostMapping("/verifyAnswer")
+    public String verifyAnswer(@ModelAttribute("d") Description desc
+            , @ModelAttribute("t")String term
+            , Model m){
+        System.out.println("Got term: " + term);
+        System.out.println("Description: " + desc.getDescription());
+        Boolean verifyRes = gameEngine.verifyAnswer(term, desc.getDescription());
+        if (verifyRes) {
+            gameEngine.incrementScoreForTerm(term);
+        }
+        else{
+            gameEngine.decrementScoreForTerm(term);
+        }
+
+        return "redirect:/api/random";
     }
 }

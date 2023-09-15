@@ -1,9 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>ALl terms</title>
-</head>
+<link rel="stylesheet" href="/styles/styles.css">
+<div th:replace="fragments/header :: header"></div>
 <body>
 
 <table>
@@ -13,19 +11,24 @@
         <th> Description</th>
     </tr>
     </thead>
-    <tbody>
+    <br>
+    <br>
+
+    <tbody style="border: 3px black">
     <tr th:if="${terms.empty}">
         <td colspan="2"> No terms Available </td>
     </tr>
 
     <tr th:each="term : ${terms}">
-        <td th:text="${term.getName()}">keyvalue</td>
-        <td th:each="desc : ${term.descriptions}" th:text="${desc.getDescription()}">keyvalue</td>
+        <td th:text="${term.getName()}" style="color: red; font-size: 50px">term</td>
+        <td th:each="desc : ${term.descriptions}" th:text="${desc.getDescription()}">description</td>
 
 
     </tr>
     </tbody>
 </table>
+
+<div th:replace="fragments/footer :: footer"></div>
 
 </body>
 </html>

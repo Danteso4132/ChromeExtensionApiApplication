@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="stylesheet" href="/styles/styles.css">
+<div th:replace="fragments/header :: header"></div>
+<table>
+    <thead>
+    <tr>
+        <th th:text="${term.getName()}" style="color: red; font-size: 50px" colspan="2">term name</th>
+    </tr>
+    </thead>
+    <br>
+    <br>
+
+    <tbody>
+
+    <tr th:each="d : ${descriptions}">
+        <td th:text="${d.getDescription()}">keyvalue</td>
+        <td>
+            <form th:action="@{/api/verifyAnswer}"  method="post"> <!--th:object="${d}"-->
+                <input type="hidden" th:name="d" th:value="${d.getDescription()}" />
+                <input type="hidden" th:name="t" th:value="${term.getName()}" />
+                <button type="submit">Submit</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+
+
+<div th:replace="fragments/footer :: footer"></div>
+</html>
