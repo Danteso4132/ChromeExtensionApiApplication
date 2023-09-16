@@ -118,6 +118,7 @@ public class ApiController {
 
     @GetMapping("/random")
     public String getRandomTerm(Model model){
+        System.out.println("Playing game");
         Map<Term, List<Description>> randomTerms = gameEngine.getTermWithRandomDescriptions();
         Term term = randomTerms.keySet().iterator().next();
         List<Description> descriptions = randomTerms.get(term);

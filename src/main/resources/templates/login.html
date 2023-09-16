@@ -1,0 +1,31 @@
+<!-- tag::all[] -->
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<link rel="stylesheet" href="/styles/styles.css">
+<div th:replace="fragments/header :: header"></div>
+
+<body>
+<h1>Login</h1>
+
+<div th:if="${error}">
+  Unable to login. Check your username and password.
+</div>
+
+<p>New here? Click
+  <a th:href="@{/api/register}">here</a> to register.</p>
+
+<!-- tag::thAction[] -->
+<form method="POST" th:action="@{/api/login}" id="loginForm">
+  <!-- end::thAction[] -->
+  <label for="username">Username: </label>
+  <input type="text" name="username" id="username" /><br/>
+
+  <label for="password">Password: </label>
+  <input type="password" name="password" id="password" /><br/>
+  <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+
+  <input type="submit" value="Login"/>
+</form>
+</body>
+</html>

@@ -1,6 +1,6 @@
 <footer>
     <link rel="stylesheet" href="/styles/styles.css">
-    <form method="post" action="/api/saveForTermName">
+    <form method="post" th:action="@{/api/saveForTermName}">
         <input th:name="word"/>
         <button type="submit">Save word</button>
     </form>
