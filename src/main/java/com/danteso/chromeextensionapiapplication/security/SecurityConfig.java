@@ -1,14 +1,17 @@
 package com.danteso.chromeextensionapiapplication.security;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 public class SecurityConfig {
@@ -34,7 +37,8 @@ public class SecurityConfig {
 
                     .and()
                     .logout()
-                    .logoutSuccessUrl("/")
+                    .logoutRequestMatcher(new AntPathRequestMatcher("/api/logout"))
+                    //.logoutSuccessUrl("/api/login")
 
                     // Make H2-Console non-secured; for debug purposes
                     //.and()
@@ -59,5 +63,19 @@ public class SecurityConfig {
         repository.setHeaderName("X-XSRF-TOKEN");
         return repository;
     }
+
+//    @Autowired
+//    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+//        BCryptPasswordEncoder enc = new BCryptPasswordEncoder();
+//            auth.
+//                    inMemoryAuthentication()
+//                    .withUser("admin")
+//                    .password(enc.encode("admin")).roles("USER", "ADMIN")
+//                    .and()
+//                    .withUser("user")
+//                    .password(enc.encode("user")).roles("USER");
+//    }
+
+
 
 }

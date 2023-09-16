@@ -3,6 +3,7 @@ package com.danteso.chromeextensionapiapplication.game;
 import com.danteso.chromeextensionapiapplication.entity.Description;
 import com.danteso.chromeextensionapiapplication.entity.Term;
 import com.danteso.chromeextensionapiapplication.repo.TermRepository;
+import com.danteso.chromeextensionapiapplication.security.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -18,8 +19,11 @@ public class GameEngine {
     @Autowired
     TermRepository termRepository;
 
-    public List<Term> getRandomTerms(){
-        List<Term> byScore_correctLessThan = termRepository.findByScore_CorrectLessThan(SCORE_BOUND);
+    public List<Term> getRandomTerms(User user){
+        //List<Term> byScore_correctLessThan = termRepository.findByScore_CorrectLessThan(SCORE_BOUND);
+        List<Term> byScore_correctLessThan = termRepository.findByScore_CorrectIsLessThanEqualAndUser(SCORE_BOUND, user);
+        System.out.println("Found terms for User " + user);
+        System.out.println("Terms: " + byScore_correctLessThan);
         Collections.shuffle(byScore_correctLessThan);
         List<Term> randomTerms = new ArrayList<>();
         for (int i = 0; i < TERMS_IN_ONE_GAME && i < byScore_correctLessThan.size(); i++){
@@ -31,8 +35,8 @@ public class GameEngine {
         return randomTerms;
     }
 
-    public Map<Term, List<Description>> getTermWithRandomDescriptions(){
-        List<Term> randomTerms = getRandomTerms();
+    public Map<Term, List<Description>> getTermWithRandomDescriptions(User user){
+        List<Term> randomTerms = getRandomTerms(user);
         Map<Term, List<Description>> termWithRandomDescriptions = new HashMap<>();
         List<Description> randomDescriptionsFromTerms = new ArrayList<>();
         for (Term randomTerm : randomTerms) {

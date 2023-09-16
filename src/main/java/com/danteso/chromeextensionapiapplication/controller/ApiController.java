@@ -6,6 +6,8 @@ import com.danteso.chromeextensionapiapplication.entity.Term;
 import com.danteso.chromeextensionapiapplication.game.GameEngine;
 import com.danteso.chromeextensionapiapplication.parser.CambridgeParser;
 import com.danteso.chromeextensionapiapplication.repo.TermRepository;
+import com.danteso.chromeextensionapiapplication.security.entity.User;
+import com.danteso.chromeextensionapiapplication.security.repo.UserRepository;
 import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,21 +37,25 @@ public class ApiController {
     @Autowired
     GameEngine gameEngine;
 
+    @Autowired
+    UserRepository userRepo;
+
 
 
 
     @PostMapping("/save")
     @ResponseBody
     @CrossOrigin
-    public String saveFromRequest(@RequestBody String request){
+    public String saveFromRequest(@RequestBody String request, Principal principal){
         System.out.println(request);
+        User user = userRepo.findByUsername(principal.getName());
         String wordToDescription = request.replaceAll("[^a-zA-Z0-9]", "");
-        Set<Description> descriptionFromUrl = saveFromGivenTermName(wordToDescription);
+        Set<Description> descriptionFromUrl = saveFromGivenTermName(wordToDescription, user);
         Gson g = new Gson();
         return g.toJson(descriptionFromUrl);
     }
 
-    private Set<Description> saveFromGivenTermName(String termName){
+    private Set<Description> saveFromGivenTermName(String termName, User user){
         Term fromRepo = termRepository.findByName(termName);
         if (fromRepo != null){
             return fromRepo.getDescriptions();
@@ -61,6 +68,7 @@ public class ApiController {
             t.setDescriptions(descriptionFromUrl);
             t.setName(termName);
             t.setScore(new Score());
+            t.setUser(user);
             termRepository.save(t);
             Gson g = new Gson();
             return descriptionFromUrl;
@@ -73,14 +81,16 @@ public class ApiController {
 
     @PostMapping("/saveForTermName")
     @CrossOrigin
-    public String saveFromRequestedName(@ModelAttribute("word") String term){
-        saveFromGivenTermName(term);
+    public String saveFromRequestedName(@ModelAttribute("word") String term, Principal principal){
+        User user = userRepo.findByUsername(principal.getName());
+        saveFromGivenTermName(term, user);
         return "redirect:/api/showAll";
     }
 
     @GetMapping("/showDescription")
     @ResponseBody
-    public String getDefinition(@RequestParam(value = "word") String word){
+    public String getDefinition(@RequestParam(value = "word") String word, Principal principal){
+        User user = userRepo.findByUsername(principal.getName());
         Term fromRepo = termRepository.findByName(word);
         if (fromRepo != null){
             return fromRepo.toString();
@@ -90,6 +100,7 @@ public class ApiController {
         t.setDescriptions(descriptionForTerm);
         t.setName(word);
         t.setScore(new Score());
+        t.setUser(user);
         termRepository.save(t);
 
         return descriptionForTerm.toString();
@@ -117,9 +128,10 @@ public class ApiController {
     }
 
     @GetMapping("/random")
-    public String getRandomTerm(Model model){
-        System.out.println("Playing game");
-        Map<Term, List<Description>> randomTerms = gameEngine.getTermWithRandomDescriptions();
+    public String getRandomTerm(Model model, Principal principal){
+        System.out.println("User " + principal);
+        User user = userRepo.findByUsername(principal.getName());
+        Map<Term, List<Description>> randomTerms = gameEngine.getTermWithRandomDescriptions(user);
         Term term = randomTerms.keySet().iterator().next();
         List<Description> descriptions = randomTerms.get(term);
         model.addAttribute("term", term);
@@ -143,4 +155,5 @@ public class ApiController {
 
         return "redirect:/api/random";
     }
+
 }

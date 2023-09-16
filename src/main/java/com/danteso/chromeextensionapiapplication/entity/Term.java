@@ -1,5 +1,6 @@
 package com.danteso.chromeextensionapiapplication.entity;
 
+import com.danteso.chromeextensionapiapplication.security.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Cascade;
@@ -46,6 +47,6 @@ public class Term {
     @OneToOne(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private Score score;
 
-
-
+    @OneToOne(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private User user;
 }
