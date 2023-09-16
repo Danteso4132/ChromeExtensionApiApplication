@@ -33,7 +33,7 @@ public class SecurityConfig {
 
                     .and()
                     .formLogin()
-                    .loginPage("/api/login")
+                    .loginPage("/api/login").defaultSuccessUrl("/api/showAll")
 
                     .and()
                     .logout()
