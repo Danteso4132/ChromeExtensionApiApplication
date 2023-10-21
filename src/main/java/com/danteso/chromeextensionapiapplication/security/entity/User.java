@@ -14,7 +14,9 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor(access = AccessLevel.PRIVATE, force = true)
 @RequiredArgsConstructor
+@AllArgsConstructor
 @ToString
+@Builder
 @Table(name = "users")
 public class User implements UserDetails {
 

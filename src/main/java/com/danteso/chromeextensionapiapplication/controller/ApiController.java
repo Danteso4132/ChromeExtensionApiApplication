@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/")
 public class ApiController {
 
-    private final Logger logger = LoggerFactory.getLogger(ApiController.class);
+    private final Logger LOG = LoggerFactory.getLogger(ApiController.class);
 
     @Autowired
     CambridgeParser cambridgeParser;
