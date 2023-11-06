@@ -15,6 +15,8 @@ import java.util.UUID;
 @ToString
 @Setter
 @Getter
+@Builder
+@AllArgsConstructor
 public class Term {
 
     public Term(){
@@ -40,13 +42,13 @@ public class Term {
     @Column(name = "name")
     private String name;
 
-    @OneToMany
+    @OneToMany(fetch = FetchType.EAGER)
     @Cascade(org.hibernate.annotations.CascadeType.ALL)
     private Set<Description> descriptions;
 
     @OneToOne(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private Score score;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
     private User user;
 }

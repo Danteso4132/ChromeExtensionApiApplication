@@ -4,6 +4,8 @@ import com.danteso.chromeextensionapiapplication.entity.Description;
 import com.danteso.chromeextensionapiapplication.entity.Term;
 import com.danteso.chromeextensionapiapplication.repo.TermRepository;
 import com.danteso.chromeextensionapiapplication.security.entity.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -12,9 +14,11 @@ import java.util.stream.Collectors;
 
 @Component
 public class GameEngine {
+    private final Logger LOG = LoggerFactory.getLogger(GameEngine.class);
 
     static final Integer SCORE_BOUND = 3;
-    static final Integer TERMS_IN_ONE_GAME = 4;
+    public static final Integer TERMS_IN_ONE_GAME = 4;
+
 
     @Autowired
     TermRepository termRepository;
@@ -47,6 +51,7 @@ public class GameEngine {
         }
         Collections.shuffle(randomDescriptionsFromTerms);
         termWithRandomDescriptions.put(randomTerms.get(0), randomDescriptionsFromTerms);
+        LOG.debug("generated term with random descriptions with size = {}", termWithRandomDescriptions.get(randomTerms.get(0)).size());
         return termWithRandomDescriptions;
     }
 
@@ -60,7 +65,7 @@ public class GameEngine {
         return collect.size() > 0;
     }
 
-    private void changeScoreForTerm(String termName, int value){
+    private void changeScoreForTermByName(String termName, int value){
         Term termByName = termRepository.findByName(termName);
         if (termByName == null){
             return;
@@ -76,10 +81,10 @@ public class GameEngine {
     }
 
     public void incrementScoreForTerm(String term){
-        changeScoreForTerm(term, 1);
+        changeScoreForTermByName(term, 1);
     }
 
     public void decrementScoreForTerm(String term){
-        changeScoreForTerm(term, -1);
+        changeScoreForTermByName(term, -1);
     }
 }
