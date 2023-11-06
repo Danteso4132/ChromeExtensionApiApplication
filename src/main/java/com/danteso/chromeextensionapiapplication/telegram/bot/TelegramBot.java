@@ -24,9 +24,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,7 +40,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final TermRepository termRepository;
     private final UserRepository userRepository;
     private final GameEngine gameEngine;
-    static final List<Long> registeredChats = new ArrayList<>();
+    static final Set<Long> registeredChats = new HashSet<>();
 
     @Override
     public String getBotUsername() {
