@@ -17,10 +17,17 @@
             <td>
                 <button onclick="window.location.href = '/api/showAll';" style="width: 100px;">All terms</button>
             </td>
+            <td>
+                <button onclick="window.location.href = '/api/telegram/token';" style="width: 100px;">Telegram token</button>
+            </td>
         </tr>
+
     </table>
     <form method="get" th:action="@{/api/logout}">
         <button type="submit">Logout</button>
+    </form>
+    <form method="get" th:action="@{/api/login}">
+    <button type="submit">Login</button>
     </form>
     <!-- Your footer contents -->
     <p>© 2023 Danteso wordl. All rights reserved.</p>

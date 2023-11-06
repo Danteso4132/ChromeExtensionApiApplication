@@ -9,4 +9,6 @@ public interface UserRepository extends CrudRepository<User, UUID> {
 
     User findByUsername(String username);
 
+    User findByTelegramChatId(Long chatId);
+
 }

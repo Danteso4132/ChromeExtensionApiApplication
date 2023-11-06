@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="stylesheet" href="/styles/styles.css">
+<div th:replace="fragments/header :: header"></div>
+<body>
+
+<div>
+    <label>Your telegram token = <span th:text="${token}"></span></label>
+</div>
+<br><br>
+<div>
+    <label>To login to telegram send following message without brackets to chat bot
+        <br><br><br>
+        <b><label>/add </label>
+            <span th:text="${token}"></span>
+        </b>
+    </label>
+
+</div>
+<br><br>
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

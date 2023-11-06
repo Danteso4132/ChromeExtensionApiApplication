@@ -156,4 +156,11 @@ public class ApiController {
         return "redirect:/api/random";
     }
 
+    @GetMapping("/telegram/token")
+    public String showTelegramToken(Model model, Principal principal){
+        User user = userRepo.findByUsername(principal.getName());
+        model.addAttribute("token", user.getId());
+        return "showTelegramToken";
+    }
+
 }

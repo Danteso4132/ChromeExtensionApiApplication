@@ -40,7 +40,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final TermRepository termRepository;
     private final UserRepository userRepository;
     private final GameEngine gameEngine;
-    static final Set<Long> registeredChats = new HashSet<>();
+    static final Map<User, Long> registeredChats = new HashMap<>();
 
     @Override
     public String getBotUsername() {
@@ -54,42 +54,47 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        //LOG.debug("Received update: {}", update);
         LOG.debug("update.getCallbackQuery = {}", update.getCallbackQuery());
-        if(update.hasMessage() && update.getMessage().hasText() && !update.hasCallbackQuery()){
+        if (update.hasMessage() && update.getMessage().hasText() && !update.hasCallbackQuery()) {
             String messageText = update.getMessage().getText();
             long chatId = update.getMessage().getChatId();
 
-            switch (messageText){
-                case "/start":
-                    startCommandReceived(chatId, update.getMessage().getChat().getFirstName());
-                    break;
-                case "/play":
-                    registeredChats.add(chatId);
+
+            if (messageText.startsWith("start")) {
+                startCommandReceived(chatId, update.getMessage().getChat().getFirstName());
+            } else if (messageText.startsWith("/play")) {
+                sendGameMessage(chatId);
+            } else if (messageText.startsWith("/add")) {
+                String userId = messageText.substring(5);
+                boolean subscriberAdded = addSubscriber(userId, chatId);
+                String message = subscriberAdded ? "User successfully logged in" : "Following userId is invalid: " + userId;
+                sendMessage(chatId, message);
+                if (subscriberAdded){
                     sendGameMessage(chatId);
-                    break;
-                default:
-                    sendMessage(chatId, "Hi");
+                }
             }
-        }
-        else if (update.hasCallbackQuery()){
-//            DeleteMessage deleteMessage = DeleteMessage.builder().chatId(update.getCallbackQuery().getMessage().getChatId()).messageId(update.getCallbackQuery().getMessage().getMessageId()).build();
-//            try{
-//                execute(deleteMessage);
-//            }
-//            catch (TelegramApiException e){
-//                LOG.debug(e.getStackTrace().toString());
-//            }
+            else if (messageText.startsWith("/checkUser")){
+                User u = userRepository.findByTelegramChatId(chatId);
+                sendMessage(chatId, "user obtained = " + u);
+            }
+            else {
+                sendMessage(chatId, "Unable to process command");
+            }
+        } else if (update.hasCallbackQuery()) {
+            Long chatId = update.getCallbackQuery().getMessage().getChatId();
             boolean answerIsCorrect = validateAnswer(update.getCallbackQuery());
             String result = answerIsCorrect ? "Correct!\n" : "Wrong!\n";
+            User userByTelegramChatId = userRepository.findByTelegramChatId(chatId);
+            registeredChats.put(userByTelegramChatId, chatId);
             removeButtonsFromMessage(update.getCallbackQuery().getMessage());
             //editMessageText(update.getCallbackQuery().getMessage(), result + update.getCallbackQuery().getMessage().getText());
             sendMessage(update.getCallbackQuery().getMessage().getChatId(), result);
+            sendGameMessage(chatId);
         }
 
     }
 
-    private void editMessageText(Message message, String text){
+    private void editMessageText(Message message, String text) {
         EditMessageText editMessageText = new EditMessageText();
         editMessageText.setText(text);
         editMessageText.setMessageId(message.getMessageId());
@@ -101,7 +106,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
 
-    private void removeButtonsFromMessage(Message message){
+    private void removeButtonsFromMessage(Message message) {
         EditMessageReplyMarkup editMessageReplyMarkup = new EditMessageReplyMarkup();
         editMessageReplyMarkup.setChatId(message.getChatId());
         editMessageReplyMarkup.setMessageId(message.getMessageId());
@@ -126,16 +131,15 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
 
         List<String> parsedDescriptions = new ArrayList<>();
-        for (int i = 1; i < GameEngine.TERMS_IN_ONE_GAME + 1; i++){
+        for (int i = 1; i < GameEngine.TERMS_IN_ONE_GAME + 1; i++) {
             int i1 = messageText.indexOf(i + ":");
             int i2 = messageText.indexOf(i + 1 + ":");
-            if (i2 != -1){
+            if (i2 != -1) {
                 parsedDescriptions.add(messageText.substring(i1 + 3, i2 - 1));
-            }
-            else{
+            } else {
                 parsedDescriptions.add(messageText.substring(i1 + 3));
             }
-            if (i == selectedOption){
+            if (i == selectedOption) {
                 markSelectedOptionAsBold(message, i1, i2);
             }
         }
@@ -143,16 +147,15 @@ public class TelegramBot extends TelegramLongPollingBot {
 //        LOG.debug("Parsed descriptions: {}", parsedDescriptions);
         LOG.debug("For term {}\nSelected option:{}\n{}\nanswerIsCorrect?: {}", term, selectedOption, parsedDescriptions.get(selectedOption - 1), answerIsCorrect);
 
-        if (answerIsCorrect){
+        if (answerIsCorrect) {
             gameEngine.incrementScoreForTerm(term);
-        }
-        else{
+        } else {
             gameEngine.decrementScoreForTerm(term);
         }
         return answerIsCorrect;
     }
 
-    private void markSelectedOptionAsBold(Message message, int start, int end){
+    private void markSelectedOptionAsBold(Message message, int start, int end) {
         EditMessageText editMessageText = new EditMessageText();
         editMessageText.enableHtml(true);
         editMessageText.setChatId(message.getChatId());
@@ -165,8 +168,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                     .append(message.getText(), start, end)
                     .append("</b>")
                     .append(message.getText().substring(end));
-        }
-        else{
+        } else {
             textWithBald
                     .append(message.getText(), 0, start)
                     .append("<b>")
@@ -186,16 +188,13 @@ public class TelegramBot extends TelegramLongPollingBot {
         sendMessage(chatId, answer);
     }
 
-    private void sendGameMessage(Long chatId){
+    private void sendGameMessage(Long chatId) {
         List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
 
         StringBuilder messageBuilder = new StringBuilder();
-        User user = userRepository.findByUsername("root"); //TODO add login
-        LOG.debug("User found: {}", user.getUsername());
-
-        LOG.debug("Terms found: {}", termRepository.findByScore_CorrectIsLessThanEqualAndUser(5, user));
-        List<Term> all = termRepository.findAll();
-        LOG.debug("All terms: {}", all);
+        User user = userRepository.findByTelegramChatId(chatId);
+        LOG.debug("chat id: {}", chatId);
+        LOG.debug("User id: {}", user.getId());
 
         Map<Term, List<Description>> termWithRandomDescriptions = gameEngine.getTermWithRandomDescriptions(user);
         LOG.debug("Got term with random descriptions: {}", termWithRandomDescriptions.keySet());
@@ -205,7 +204,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         messageBuilder.append("\n\n");
         int counter = 1;
         LOG.debug("descriptions size = {}", termWithRandomDescriptions.get(term).size());
-        for (Description d : termWithRandomDescriptions.get(term)){
+        for (Description d : termWithRandomDescriptions.get(term)) {
             messageBuilder.append(counter).append(": ").append(d.getDescription()).append("\n");
             InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
             inlineKeyboardButton.setText(String.valueOf(counter));
@@ -216,9 +215,9 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
 
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup(buttons);
-        LOG.debug("buttons.size = {}", buttons.size());
-        LOG.debug("markup = {}", inlineKeyboardMarkup);
-        LOG.debug("markupKeyboard = {}", inlineKeyboardMarkup.getKeyboard());
+        Collection<Long> values = registeredChats.values();
+        registeredChats.remove(user);
+        LOG.debug("Was chats.size = {}, now size = {}", values.size(), registeredChats.values().size());
         sendMessageWithButtons(chatId, messageBuilder.toString(), inlineKeyboardMarkup);
     }
 
@@ -241,13 +240,26 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     //Event happens every minute
     @Scheduled(cron = "0 * * * * *")
-    private void runScheduledGame(){
-        LOG.debug("Cron event");
-        for (Long registeredChat : registeredChats) {
+    private void runScheduledGame() {
+        for (Long registeredChat : registeredChats.values()) {
             LOG.debug("Running game from cron for chat {}", registeredChat);
             sendGameMessage(registeredChat);
         }
 
+    }
+
+
+    public boolean addSubscriber(String userId, Long chatId) {
+        Optional<User> userById = userRepository.findById(UUID.fromString(userId));
+        boolean userFound = false;
+        if (userById.isPresent()) {
+            userFound = true;
+            User user = userById.get();
+            user.setTelegramChatId(chatId);
+            userRepository.save(user);
+            registeredChats.put(user, chatId);
+        }
+        return userFound;
     }
 
 }

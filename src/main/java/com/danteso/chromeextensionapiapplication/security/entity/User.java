@@ -17,6 +17,8 @@ import java.util.UUID;
 @AllArgsConstructor
 @ToString
 @Builder
+@Getter
+@Setter
 @Table(name = "users")
 public class User implements UserDetails {
 
@@ -28,6 +30,8 @@ public class User implements UserDetails {
 
     private final String username;
     private final String password;
+
+    public Long telegramChatId;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities(){
@@ -53,4 +57,6 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+
 }
