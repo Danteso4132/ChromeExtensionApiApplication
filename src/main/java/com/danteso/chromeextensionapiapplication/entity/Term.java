@@ -5,9 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Cascade;
 
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "terms")
@@ -27,11 +25,11 @@ public class Term {
         this.descriptions = Set.of(new Description(description));
     }
 
-    public Term(String id, String name, Set<Description> descriptions, Score score) {
+    public Term(String id, String name, Set<Description> descriptions, Score score, User user) {
         this.id = UUID.fromString(id);
         this.name = name;
         this.descriptions = descriptions;
-        this.score = score;
+        this.scoreForUser = new HashMap<>(Map.of(user, score));
     }
 
     @Id
@@ -46,9 +44,13 @@ public class Term {
     @Cascade(org.hibernate.annotations.CascadeType.ALL)
     private Set<Description> descriptions;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    private Score score;
+    @OneToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private Map<User, Score> scoreForUser;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
-    private User user;
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
+    private List<User> user;
+
+    public Score getScoreForUser(User user) {
+        return scoreForUser.get(user);
+    }
 }

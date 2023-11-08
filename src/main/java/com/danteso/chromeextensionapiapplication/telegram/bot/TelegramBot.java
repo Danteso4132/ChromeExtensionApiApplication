@@ -146,11 +146,11 @@ public class TelegramBot extends TelegramLongPollingBot {
         Boolean answerIsCorrect = gameEngine.verifyAnswer(term, parsedDescriptions.get(selectedOption - 1));
 //        LOG.debug("Parsed descriptions: {}", parsedDescriptions);
         LOG.debug("For term {}\nSelected option:{}\n{}\nanswerIsCorrect?: {}", term, selectedOption, parsedDescriptions.get(selectedOption - 1), answerIsCorrect);
-
+        User user = userRepository.findByTelegramChatId(message.getChatId());
         if (answerIsCorrect) {
-            gameEngine.incrementScoreForTerm(term);
+            gameEngine.incrementScoreForTerm(term, user);
         } else {
-            gameEngine.decrementScoreForTerm(term);
+            gameEngine.decrementScoreForTerm(term, user);
         }
         return answerIsCorrect;
     }

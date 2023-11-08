@@ -25,7 +25,7 @@ public class GameEngine {
 
     public List<Term> getRandomTerms(User user){
         //List<Term> byScore_correctLessThan = termRepository.findByScore_CorrectLessThan(SCORE_BOUND);
-        List<Term> byScore_correctLessThan = termRepository.findByScore_CorrectIsLessThanEqualAndUser(SCORE_BOUND, user);
+        List<Term> byScore_correctLessThan = termRepository.findByScoreForUser_CorrectIsLessThanEqualAndUser(SCORE_BOUND, user);
         System.out.println("Found terms for User " + user);
         System.out.println("Terms: " + byScore_correctLessThan);
         Collections.shuffle(byScore_correctLessThan);
@@ -65,26 +65,26 @@ public class GameEngine {
         return collect.size() > 0;
     }
 
-    private void changeScoreForTermByName(String termName, int value){
+    private void changeScoreForTermByName(String termName, int value, User user){
         Term termByName = termRepository.findByName(termName);
         if (termByName == null){
             return;
         }
         if (value > 0){
-            termByName.getScore().setCorrect(termByName.getScore().getCorrect() + 1);
+            termByName.getScoreForUser(user).setCorrect(termByName.getScoreForUser(user).getCorrect() + 1);
             termRepository.save(termByName);
         }
         else if (value < 0){
-            termByName.getScore().setErrors(termByName.getScore().getErrors() + 1);
+            termByName.getScoreForUser(user).setErrors(termByName.getScoreForUser(user).getErrors() + 1);
             termRepository.save(termByName);
         }
     }
 
-    public void incrementScoreForTerm(String term){
-        changeScoreForTermByName(term, 1);
+    public void incrementScoreForTerm(String term, User user){
+        changeScoreForTermByName(term, 1, user);
     }
 
-    public void decrementScoreForTerm(String term){
-        changeScoreForTermByName(term, -1);
+    public void decrementScoreForTerm(String term, User user){
+        changeScoreForTermByName(term, -1, user);
     }
 }

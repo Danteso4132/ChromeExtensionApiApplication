@@ -18,9 +18,12 @@ public interface TermRepository extends JpaRepository<Term, UUID> {
 
 
 
-    List<Term> findByScore_CorrectLessThan(Integer correct);
 
-    List<Term> findByScore_CorrectIsLessThanEqualAndUser(Integer correct, User user);
+    //List<Term> findByScore_CorrectLessThan(Integer correct);
+
+    List<Term> findByScoreForUser_CorrectIsLessThanEqualAndUser(Integer correct, User user);
+
+    List<Term> findByUser(User user);
 
 
 }

@@ -17,9 +17,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -47,7 +45,7 @@ public class ApiController {
     @ResponseBody
     @CrossOrigin
     public String saveFromRequest(@RequestBody String request, Principal principal){
-        System.out.println(request);
+        LOG.debug(request);
         User user = userRepo.findByUsername(principal.getName());
         String wordToDescription = request.replaceAll("[^a-zA-Z0-9]", "");
         Set<Description> descriptionFromUrl = saveFromGivenTermName(wordToDescription, user);
@@ -58,6 +56,12 @@ public class ApiController {
     private Set<Description> saveFromGivenTermName(String termName, User user){
         Term fromRepo = termRepository.findByName(termName);
         if (fromRepo != null){
+            if (!fromRepo.getUser().contains(user)){
+                LOG.debug("got term from repo = {}", fromRepo);
+                fromRepo.getUser().add(user);
+                fromRepo.getScoreForUser().put(user, new Score());
+                termRepository.save(fromRepo);
+            }
             return fromRepo.getDescriptions();
         }
         String url = "https://dictionary.cambridge.org/dictionary/english/"+ termName;
@@ -67,8 +71,13 @@ public class ApiController {
         if (descriptionFromUrl.size() > 0){
             t.setDescriptions(descriptionFromUrl);
             t.setName(termName);
-            t.setScore(new Score());
-            t.setUser(user);
+            t.setScoreForUser(new HashMap<User, Score>(Map.of(user, new Score())));
+            if (t.getUser() != null){
+                t.getUser().add(user);
+            }
+            else {
+                t.setUser(new ArrayList<>(List.of(user)));
+            }
             termRepository.save(t);
             Gson g = new Gson();
             return descriptionFromUrl;
@@ -84,7 +93,7 @@ public class ApiController {
     public String saveFromRequestedName(@ModelAttribute("word") String term, Principal principal){
         User user = userRepo.findByUsername(principal.getName());
         saveFromGivenTermName(term, user);
-        return "redirect:/api/showAll";
+        return "redirect:/api/myTerms";
     }
 
     @GetMapping("/showDescription")
@@ -99,8 +108,13 @@ public class ApiController {
         Term t = new Term();
         t.setDescriptions(descriptionForTerm);
         t.setName(word);
-        t.setScore(new Score());
-        t.setUser(user);
+        t.setScoreForUser(new HashMap<User, Score>(Map.of(user, new Score())));
+        if (t.getUser() != null){
+            t.getUser().add(user);
+        }
+        else {
+            t.setUser(new ArrayList<>(List.of(user)));
+        }
         termRepository.save(t);
 
         return descriptionForTerm.toString();
@@ -112,16 +126,27 @@ public class ApiController {
         return "showAll";
     }
 
+    @GetMapping("/myTerms")
+    public String getMyTerms(Model model, Principal principal){
+        User user = userRepo.findByUsername(principal.getName());
+        model.addAttribute("terms", termRepository.findByUser(user));
+        return "showAll";
+    }
+
     @GetMapping("/showScores")
-    public String getAllScores(Model model){
-        List<Term> allTerms = termRepository.findAll();
-//        StringBuilder sb = new StringBuilder();
-//        all.stream().forEach(t -> sb.append(t.getName() + " " + t.getScore().getCorrect() + " | " +  t.getScore().getErrors()));
-//        return sb.toString();
-        //List<Score> scores = allTerms.stream().map(t -> t.getScore()).collect(Collectors.toList());
-        Map<String, Score> scores = allTerms.stream().
-                collect(Collectors.toMap(Term::getName, Term::getScore));
-        System.out.println(scores);
+    public String getAllScores(Model model, Principal principal){
+        User user = userRepo.findByUsername(principal.getName());
+        //List<Term> allTerms = termRepository.findAll();
+        List<Term> allTerms = termRepository.findByUser(user);
+//        Map<String, Score> scores = allTerms.stream().
+//                collect(Collectors.toMap(Term::getName, Term::getScore));
+//        System.out.println(scores);
+        Map<String, Score> scores = new HashMap<>();
+        for (Term allTerm : allTerms) {
+            scores.put(allTerm.getName(), allTerm.getScoreForUser(user));
+        }
+        LOG.debug("scores for user = {}", scores);
+
         model.addAttribute("scoresMap", scores);
 
         return "scores";
@@ -129,7 +154,7 @@ public class ApiController {
 
     @GetMapping("/random")
     public String getRandomTerm(Model model, Principal principal){
-        System.out.println("User " + principal);
+        LOG.debug("User " + principal);
         User user = userRepo.findByUsername(principal.getName());
         Map<Term, List<Description>> randomTerms = gameEngine.getTermWithRandomDescriptions(user);
         Term term = randomTerms.keySet().iterator().next();
@@ -142,15 +167,17 @@ public class ApiController {
     @PostMapping("/verifyAnswer")
     public String verifyAnswer(@ModelAttribute("d") Description desc
             , @ModelAttribute("t")String term
-            , Model m){
-        System.out.println("Got term: " + term);
-        System.out.println("Description: " + desc.getDescription());
+            , Model m
+            , Principal principal){
+        User user = userRepo.findByUsername(principal.getName());
+        LOG.debug("Got term: " + term);
+        LOG.debug("Description: " + desc.getDescription());
         Boolean verifyRes = gameEngine.verifyAnswer(term, desc.getDescription());
         if (verifyRes) {
-            gameEngine.incrementScoreForTerm(term);
+            gameEngine.incrementScoreForTerm(term, user);
         }
         else{
-            gameEngine.decrementScoreForTerm(term);
+            gameEngine.decrementScoreForTerm(term, user);
         }
 
         return "redirect:/api/random";
@@ -162,5 +189,16 @@ public class ApiController {
         model.addAttribute("token", user.getId());
         return "showTelegramToken";
     }
+//
+//    @GetMapping("/error")
+//    public String errorGet() {
+//        LOG.debug("Getting /error");
+//        return "redirect:/api/showAll";
+//    }
+//    @PostMapping("/error")
+//    public String errorPost(){
+//        LOG.debug("Posting /error");
+//        return "redirect:/api/showAll";
+//    }
 
 }

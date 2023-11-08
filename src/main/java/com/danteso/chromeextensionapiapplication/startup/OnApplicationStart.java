@@ -14,7 +14,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import java.util.Set;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -59,8 +59,8 @@ public class OnApplicationStart {
                         , new Description("to have or produce a team of people to take part in an activity or event:")
                         , new Description("an area of land with grass or crops growing on it:"))
                 )
-                .user(rootUser)
-                .score(new Score()).build();
+                .user(new ArrayList<>(List.of(rootUser)))
+                .scoreForUser(new HashMap<>(Map.of(rootUser, new Score()))).build();
         termRepository.save(term);
 
         term = Term.builder().name("class").descriptions(Set.of(
@@ -71,8 +71,8 @@ public class OnApplicationStart {
                         , new Description("a group into which goods and services are put based on their characteristics:")
                         , new Description("to be something of such a high quality that nothing can be compared to it:"))
                 )
-                .user(rootUser)
-                .score(new Score()).build();
+                .user(new ArrayList<>(List.of(rootUser)))
+                .scoreForUser(new HashMap<>(Map.of(rootUser, new Score()))).build();
         termRepository.save(term);
     }
 }
